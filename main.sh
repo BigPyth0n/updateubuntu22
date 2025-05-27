@@ -34,24 +34,13 @@ if [ -z "$PUBLIC_IP" ]; then
 fi
 echo -e "${GREEN}Public IP detected: $PUBLIC_IP${NC}"
 
-# 4. استخراج یا تنظیم نام هاست
-echo -e "${GREEN}Setting hostname...${NC}"
-CURRENT_HOSTNAME=$(hostname)
-if [ -z "$CURRENT_HOSTNAME" ] || [ "$CURRENT_HOSTNAME" = "localhost" ]; then
-    NEW_HOSTNAME="myserver-$(date +%Y%m%d)" # نام هاست با تاریخ برای تمایز
-    sudo hostnamectl set-hostname "$NEW_HOSTNAME"
-    echo -e "${GREEN}Hostname set to $NEW_HOSTNAME.${NC}"
-else
-    NEW_HOSTNAME=$CURRENT_HOSTNAME
-    echo -e "${GREEN}Using existing hostname: $NEW_HOSTNAME.${NC}"
-fi
-
-# 5. ویرایش فایل /etc/hosts با IP عمومی
-echo -e "${GREEN}Updating /etc/hosts file...${NC}"
-if ! grep -q "$NEW_HOSTNAME" /etc/hosts; then
-    sudo bash -c "echo \"$PUBLIC_IP   $NEW_HOSTNAME\" >> /etc/hosts"
+# 5. ویرایش فایل /etc/hosts با خروجی hostname
+echo -e "${GREEN}Updating /etc/hosts file with hostname...${NC}"
+HOSTNAME=$(hostname)
+if ! grep -q "$HOSTNAME" /etc/hosts; then
+    echo "127.0.0.1 $HOSTNAME" | sudo tee -a /etc/hosts
     if [ $? -eq 0 ]; then
-        echo -e "${GREEN}/etc/hosts updated successfully.${NC}"
+        echo -e "${GREEN}/etc/hosts updated successfully with $HOSTNAME.${NC}"
         echo -e "${GREEN}Current /etc/hosts content:${NC}"
         cat /etc/hosts
     else
@@ -59,14 +48,14 @@ if ! grep -q "$NEW_HOSTNAME" /etc/hosts; then
         exit 1
     fi
 else
-    echo -e "${GREEN}Hostname already exists in /etc/hosts. Skipping update.${NC}"
+    echo -e "${GREEN}Hostname $HOSTNAME already exists in /etc/hosts. Skipping update.${NC}"
 fi
 
-# 6. تنظیم منطقه زمانی به Asia/Tehran
-echo -e "${GREEN}Setting timezone to Asia/Tehran...${NC}"
-sudo timedatectl set-timezone Asia/Tehran
+# 6. تنظیم منطقه زمانی به America/Los_Angeles (واشنگتن)
+echo -e "${GREEN}Setting timezone to America/Los_Angeles (Washington)...${NC}"
+sudo timedatectl set-timezone America/Los_Angeles
 if [ $? -eq 0 ]; then
-    echo -e "${GREEN}Timezone set to Asia/Tehran successfully.${NC}"
+    echo -e "${GREEN}Timezone set to America/Los_Angeles successfully.${NC}"
     date
 else
     echo -e "${RED}Error setting timezone. Continuing with default.${NC}"
