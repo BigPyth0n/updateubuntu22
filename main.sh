@@ -7,7 +7,7 @@ NC='\033[0m' # بدون رنگ
 
 # 1. آپدیت و آپگرید سیستم با تأیید خودکار
 echo -e "${GREEN}Updating and upgrading the system...${NC}"
-sudo apt update && sudo apt upgrade -y --force-confdef --force-confold
+sudo apt update && sudo apt upgrade -y
 if [ $? -eq 0 ]; then
     echo -e "${GREEN}System update and upgrade completed successfully.${NC}"
 else
@@ -34,7 +34,7 @@ if [ -z "$PUBLIC_IP" ]; then
 fi
 echo -e "${GREEN}Public IP detected: $PUBLIC_IP${NC}"
 
-# 5. ویرایش فایل /etc/hosts با خروجی hostname
+# 4. ویرایش فایل /etc/hosts با خروجی hostname
 echo -e "${GREEN}Updating /etc/hosts file with hostname...${NC}"
 HOSTNAME=$(hostname)
 if ! grep -q "$HOSTNAME" /etc/hosts; then
@@ -51,7 +51,7 @@ else
     echo -e "${GREEN}Hostname $HOSTNAME already exists in /etc/hosts. Skipping update.${NC}"
 fi
 
-# 6. تنظیم منطقه زمانی به America/Los_Angeles (واشنگتن)
+# 5. تنظیم منطقه زمانی به America/Los_Angeles (واشنگتن)
 echo -e "${GREEN}Setting timezone to America/Los_Angeles (Washington)...${NC}"
 sudo timedatectl set-timezone America/Los_Angeles
 if [ $? -eq 0 ]; then
@@ -61,7 +61,7 @@ else
     echo -e "${RED}Error setting timezone. Continuing with default.${NC}"
 fi
 
-# 7. ریستارت تمام سرویس‌ها
+# 6. ریستارت تمام سرویس‌ها
 echo -e "${GREEN}Restarting all services...${NC}"
 sudo systemctl restart networking
 sudo systemctl restart ssh
