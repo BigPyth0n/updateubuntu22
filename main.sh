@@ -17,15 +17,36 @@ fi
 
 # 2. نصب نرم‌افزارهای ضروری با تأیید خودکار
 echo -e "${GREEN}Installing essential software...${NC}"
-sudo apt install -y tmux nano htop curl wget git unzip net-tools ufw
+sudo apt install -y tmux nano htop curl wget git unzip net-tools ufw cron
 if [ $? -eq 0 ]; then
-    echo -e "${GREEN}Essential software installed successfully.${NC}"
+    echo -e "${GREEN}Essential software including cron installed successfully.${NC}"
 else
     echo -e "${RED}Error installing essential software. Exiting.${NC}"
     exit 1
 fi
 
-# 3. استخراج آدرس IP عمومی
+# 3. فعال‌سازی و شروع سرویس cron
+echo -e "${GREEN}Enabling and starting cron service...${NC}"
+sudo systemctl enable cron
+sudo systemctl start cron
+if [ $? -eq 0 ]; then
+    echo -e "${GREEN}Cron service enabled and started successfully.${NC}"
+else
+    echo -e "${RED}Error enabling or starting cron service. Exiting.${NC}"
+    exit 1
+fi
+
+# 4. نصب acme.sh (بدون صدور گواهینامه)
+echo -e "${GREEN}Installing acme.sh...${NC}"
+curl https://get.acme.sh | sudo -i bash
+if [ -f "/root/.acme.sh/acme.sh" ]; then
+    echo -e "${GREEN}acme.sh installed successfully at /root/.acme.sh/acme.sh${NC}"
+else
+    echo -e "${RED}Failed to install acme.sh. Exiting.${NC}"
+    exit 1
+fi
+
+# 5. استخراج آدرس IP عمومی
 echo -e "${GREEN}Fetching public IP address...${NC}"
 PUBLIC_IP=$(curl -s ifconfig.me)
 if [ -z "$PUBLIC_IP" ]; then
@@ -34,7 +55,7 @@ if [ -z "$PUBLIC_IP" ]; then
 fi
 echo -e "${GREEN}Public IP detected: $PUBLIC_IP${NC}"
 
-# 4. ویرایش فایل /etc/hosts با خروجی hostname
+# 6. ویرایش فایل /etc/hosts با خروجی hostname
 echo -e "${GREEN}Updating /etc/hosts file with hostname...${NC}"
 HOSTNAME=$(hostname)
 if ! grep -q "$HOSTNAME" /etc/hosts; then
@@ -51,7 +72,7 @@ else
     echo -e "${GREEN}Hostname $HOSTNAME already exists in /etc/hosts. Skipping update.${NC}"
 fi
 
-# 5. تنظیم منطقه زمانی به America/Los_Angeles (واشنگتن)
+# 7. تنظیم منطقه زمانی به America/Los_Angeles (واشنگتن)
 echo -e "${GREEN}Setting timezone to America/Los_Angeles (Washington)...${NC}"
 sudo timedatectl set-timezone America/Los_Angeles
 if [ $? -eq 0 ]; then
@@ -61,7 +82,7 @@ else
     echo -e "${RED}Error setting timezone. Continuing with default.${NC}"
 fi
 
-# 6. ریستارت تمام سرویس‌ها
+# 8. ریستارت تمام سرویس‌ها
 echo -e "${GREEN}Restarting all services...${NC}"
 sudo systemctl restart networking
 sudo systemctl restart ssh
